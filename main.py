@@ -4,10 +4,9 @@ from time import sleep
 
 class matrix():
     def __init__(self):
-        self.MAX7219_NUM = 1
+        self.MAX7219_NUM = 4
         self.MAX7219_INVERT = False
-#        self.MAX7219_SCROLL_DELAY = 0.15
-        self.MAX7219_SCROLL_DELAY = 0
+        self.MAX7219_SCROLL_DELAY = 0.15    # set to 0 (zero) for none-scrolling text
         cs_pin = 5
 
         spi = SPI(0)
