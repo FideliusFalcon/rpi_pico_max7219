@@ -27,6 +27,5 @@ if led.MAX7219_SCROLL_DELAY == 0:
     led.display.fill(led.MAX7219_INVERT)
     led.display.text(text, 0, 1, not led.MAX7219_INVERT)
     led.display.show()
-    sleep(10)
 else :
     led.text_scroll(text)
