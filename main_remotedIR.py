@@ -48,9 +48,9 @@ class matrix():
             self.text_scroll()
     def ir_rcv(self, data):
         if data == "FIN":
-            data = ""
             self.VISIBLE = self.LECTURE
             self.LECTURE = ""
+            data = ""
         if data == "Defilement":                    #Touche "Pause"
             self.LECTURE = ""
             if self.MAX7219_SCROLL_DELAY == 0:
