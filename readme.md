@@ -21,3 +21,6 @@ Le module MAX7219 nécessite 5V, vous les lui fournirez en exploitant la broche 
 If you change the SPI clock pin (CS) remember to change it in code. 
 
 N'oubliez pas de modifier votre code si vous changez de broche où connecter SPI (CS).
+
+## Links / Liens
+[framebuf --- documentation](http://docs.micropython.org/en/latest/pyboard/library/framebuf.html)
