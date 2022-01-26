@@ -15,18 +15,20 @@ p = Pin(15, Pin.IN)
 
 
 class matrix():
-    def __init__(self):
-        self.MAX7219_NUM = 1
-        self.MAX7219_INVERT = False
-#        self.MAX7219_SCROLL_DELAY = 0.15
-        self.MAX7219_SCROLL_DELAY = 25
-        cs_pin = 5
-        self.LECTURE = ""
-        self.VISIBLE = "Ceci"
+    bright = 9
+    invert = False
+    LECTURE = ""
+    VISIBLE = "Ceci"
+    MAX7219_NUM = 1
+    MAX7219_INVERT = invert
+    MAX7219_SCROLL_DELAY = 0.15
+#   MAX7219_SCROLL_DELAY = 0
 
+    def __init__(self):
+        cs_pin = 5
         spi = SPI(0)
         self.display = max7219.Matrix8x8(spi=spi, cs=Pin(cs_pin), num=self.MAX7219_NUM)
-        self.display.brightness(2)
+        self.display.brightness(self.bright)
     
     def text_scroll(self):
         p = self.MAX7219_NUM * 8
@@ -40,28 +42,42 @@ class matrix():
         self.display.text(self.VISIBLE, 0, 1, not self.MAX7219_INVERT)
         self.display.show()
     def affiche(self):
-        if self.MAX7219_SCROLL_DELAY > 20:
+        if self.MAX7219_SCROLL_DELAY == 0:
             self.text_fixe()
         else:
             self.text_scroll()
     def ir_rcv(self, data):
         if data == "FIN":
+            data = ""
             self.VISIBLE = self.LECTURE
             self.LECTURE = ""
         if data == "Defilement":                    #Touche "Pause"
             self.LECTURE = ""
-            if self.MAX7219_SCROLL_DELAY > 10:
+            if self.MAX7219_SCROLL_DELAY == 0:
                 self.MAX7219_SCROLL_DELAY = 0.15
             else:
-                self.MAX7219_SCROLL_DELAY = 25
+                self.MAX7219_SCROLL_DELAY = 0
         if data == "+":                             #Touche "+"
+            self.LECTURE = ""
             self.MAX7219_SCROLL_DELAY = self.MAX7219_SCROLL_DELAY * 0.8
-            self.LECTURE = ""
         if data == "-":                             #Touche "-"
-            self.MAX7219_SCROLL_DELAY = self.MAX7219_SCROLL_DELAY * 1.25
             self.LECTURE = ""
+            self.MAX7219_SCROLL_DELAY = self.MAX7219_SCROLL_DELAY * 1.25
+        if data == "OFF":
+            if self.bright == 0:
+                self.bright = 9
+            else:
+                self.bright = 0
+            self.display.brightness(self.bright)
+        if data == "USB":                             #Touche "USB"
+            if self.invert == True:
+                self.invert = False
+            else:
+                self.invert = True
+            self.MAX7219_INVERT = self.invert
         else:
             self.LECTURE = self.LECTURE + data
+        data = ""
 
 # User callback
 def cb(data, addr, ctrl):
@@ -81,16 +97,16 @@ def cb(data, addr, ctrl):
             '52':'8',
             '4a':'9',
             '19':'FIN',        #button 'twisted arrows' used as "Enter" to apply the changes and display new text
-            '0d':'USB',
-            '07':'EQ',
+            '0d':'USB',        #button 'USB' used for swap between inverse video and normal
+            '07':'Allo!',      #button 'EQ'
             '15':'-',          #button - used to decelerate the scrolling
             '09':'+',          #button + used to accelerate the scrolling
-            '44':'Pause',
-            '40':'Recule',
-            '43':'Avance',
-            '45':'ON/OFF',      #button ON/OFF used to turn the panel OFF
-            '46':'Defilement',  #buttun Mode used for stop/start the scrolling
-            '47':'Sourdine'     #button MUTE
+            '44':'Pause',      #button 'pause'
+            '40':'Recule',     #button 'Ffoward'
+            '43':'Avance',     #button 'Fback'
+            '45':'OFF',        #button ON/OFF used to turn the panel OFF  (to swap brightness between 0 and 9)
+            '46':'Defilement', #buttun Mode used to swap between scrolling and static text
+            '47':'Sourdine'    #button MUTE
             }
         led.ir_rcv(switch.get(val, "Rien"))
 
