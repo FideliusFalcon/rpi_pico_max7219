@@ -1,66 +1,73 @@
-# test.py Test program for IR remote control decoder
-# Supports Pyboard, ESP32 and ESP8266
-
-# Author: Peter Hinch
-# Copyright Peter Hinch 2020 Released under the MIT license
-
-# Run this to characterise a remote.
-
 from sys import platform
 import time
 import gc
 from machine import Pin, freq
-from ir_rx.print_error import print_error  # Optional print of error codes
+from print_error import print_error  # Optional print of error codes
 # Import all implemented classes
-from ir_rx.nec import NEC_8, NEC_16
-from ir_rx.sony import SONY_12, SONY_15, SONY_20
-from ir_rx.philips import RC5_IR, RC6_M0
-from ir_rx.mce import MCE
+from nec import NEC_8, NEC_16
+from sony import SONY_12, SONY_15, SONY_20
+from philips import RC5_IR, RC6_M0
+from mce import MCE
 
 # Define pin according to platform
-if platform == 'pyboard':
-    p = Pin('X3', Pin.IN)
-elif platform == 'esp8266':
-    freq(160000000)
-    p = Pin(13, Pin.IN)
-elif platform == 'esp32' or platform == 'esp32_LoBo':
-    p = Pin(23, Pin.IN)
-elif platform == 'rp2':
-    p = Pin(16, Pin.IN)
+p = Pin(15, Pin.IN)
+proto = 0
+
+class show():
+    IRred = ""
+    IRtxt = ""
+    CUMUL = "swich={"
+    FINAL = "show.TXT = switch.get(val, \"Rien\")"
+
+    def __init__(self):
+        self.LECTURE = ""
 
 # User callback
 def cb(data, addr, ctrl):
     if data < 0:  # NEC protocol sends repeat codes.
-        print('Repeat code.')
+        pass
     else:
         print('Data {:02x} Addr {:04x} Ctrl {:02x}'.format(data, addr, ctrl))
-
-def test(proto=0):
-    classes = (NEC_8, NEC_16, SONY_12, SONY_15, SONY_20, RC5_IR, RC6_M0, MCE)
-    ir = classes[proto](p, cb)  # Instantiate receiver
-    ir.error_function(print_error)  # Show debug information
-    #ir.verbose = True
-    # A real application would do something here...
-    try:
-        while True:
-            print('running')
-            time.sleep(5)
-            gc.collect()
-    except KeyboardInterrupt:
-        ir.close()
+        val = str('{:02x}'.format(data))
+        txt.CUMUL = txt.CUMUL + "'{:02x}': ''".format(str(val), txt.IRtxt)
+            
+classes = (NEC_8, NEC_16, SONY_12, SONY_15, SONY_20, RC5_IR, RC6_M0, MCE)
+ir = classes[proto](p, cb)  # Instantiate receiver
+ir.error_function(print_error)  # Show debug information
+txt = show()
 
 # **** DISPLAY GREETING ****
-s = '''Test for IR receiver. Run:
-from ir_rx.test import test
-test() for NEC 8 bit protocol,
-test(1) for NEC 16 bit,
-test(2) for Sony SIRC 12 bit,
-test(3) for Sony SIRC 15 bit,
-test(4) for Sony SIRC 20 bit,
-test(5) for Philips RC-5 protocol,
-test(6) for RC6 mode 0.
-test(7) for Microsoft Vista MCE.
+s = '''Test for IR receiver.
+We`ll test every single button of your remote.
+First: brand and name of your remote
+Second: ON/OFF button and numbers
+Third: all other buttons you`ll want
+       Let entry blank to finish
 
-Hit ctrl-c to stop, then ctrl-d to soft reset.'''
-
+Hit ctrl-c to stop, then ctrl-d to soft reset... you`ll lose data'''
 print(s)
+
+brand = input("Your remote brand : ")
+model = input("Your remote model : ")
+
+txt.IRtxt = "POWER"
+num = print("Please press POWER button ")
+for t in range(0, 9999):
+    gc.collect()
+    time.sleep(3)
+for x in range(0, 10):
+    txt.IRtxt = str(x)
+    num = print("Please press the number " + str(x))
+    for t in range(0, 9999):
+        gc.collect()
+        time.sleep(3)
+
+print("Voici la cueillette : " + txt.CUMUL)
+#try:
+#    while True:
+#        # A real application would do something here...
+#        print('running')
+#        gc.collect()
+#        time.sleep(5)
+#except KeyboardInterrupt:
+#    ir.close()
